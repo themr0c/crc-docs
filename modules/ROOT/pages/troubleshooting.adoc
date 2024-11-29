@@ -1,0 +1,178 @@
+:description: Troubleshooting {prod}
+
+[id="troubleshooting"]
+= Troubleshooting {rh-prod}
+
+[NOTE]
+====
+The goal of {rh-prod} is to deliver an {ocp} environment for development and testing purposes.
+Issues occurring during installation or usage of specific {openshift} applications are outside of the scope of {prod}.
+Report such issues to the relevant project.
+====
+
+[id='getting-shell-access-to-the-openshift-cluster']
+== Getting shell access to the {openshift} cluster
+
+To access the cluster for troubleshooting or debugging purposes, follow this procedure.
+
+[NOTE]
+====
+Direct access to the {ocp} cluster is not needed for regular use and is strongly discouraged.
+====
+
+.Prerequisites
+* Enable {openshift} CLI ([command]`oc`) access to the cluster and log in as the `kubeadmin` user.
+For detailed steps, see xref:using.adoc#accessing-the-openshift-cluster-with-the-openshift-cli[Accessing the {openshift} cluster with the {openshift} CLI].
+
+.Procedure
+. Run the [command]`oc get nodes` command to identify the desired node.
+The output will be similar to this:
++
+[subs="+quotes,attributes",options="nowrap"]
+----
+$ oc get nodes
+NAME                 STATUS   ROLES           AGE    VERSION
+crc-shdl4-master-0   Ready    master,worker   7d7h   v1.14.6+7e13ab9a7
+----
+
+. Run [command]`oc debug nodes/_<node>_` where `_<node>_` is the name of the node printed in the previous step.
+
+[id='troubleshooting-expired-certificates']
+== Troubleshooting expired certificates
+
+The system bundle of {ocp} in each released [command]`{bin}` executable expires 1 year after the release.
+This expiration is due to certificates embedded in the {ocp} cluster.
+The [command]`{bin} start` command triggers an automatic certificate renewal process when needed.
+Certificate renewal can add up to five minutes to the start time of the cluster.
+
+To avoid this additional startup time, or in case of failures in the certificate renewal process, use the following procedure:
+
+.Procedure
+To resolve expired certificate errors that cannot be automatically renewed:
+
+. link:{crc-download-url}[Download the latest {prod} release] and place the [command]`{bin}` executable in your `$PATH`.
+
+. Save any desired information stored in your existing instance.
+
+. Delete the existing {prod} instance.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} delete
+----
+
+. Set up the new release:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} setup
+----
+
+. Start the new instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+----
+
+[id='troubleshooting-bundle-version-mismatch']
+== Troubleshooting bundle version mismatch
+
+Created {prod} instances contain bundle information and instance data.
+Bundle information and instance data is not updated when setting up a new {prod} release.
+This information is not updated due to customization in the earlier instance data.
+This will lead to errors when running the [command]`{bin} start` command:
+
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+...
+FATA Bundle 'crc_hyperkit_4.2.8.crcbundle' was requested, but the existing VM is using
+'crc_hyperkit_4.2.2.crcbundle'
+----
+
+.Procedure
+. Save any desired information stored in your existing instance.
+
+. Delete the existing {prod} instance.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} delete
+----
+
+. Start a new {prod} instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+----
+
+[id='troubleshooting-unknown-issues']
+== Troubleshooting unknown issues
+
+Resolve most issues by restarting {prod} with a clean state.
+This involves stopping the instance, deleting it, reverting changes made by the [command]`{bin} setup` command, reapplying those changes, and restarting the instance.
+
+.Prerequisites
+* You have xref:using.adoc#setting-up[set up {prod}].
+* You have xref:using.adoc#starting-the-instance[started the {prod} instance].
+* You are using the latest {prod} release.
+Using a version earlier than {prod} 1.2.0 might result in errors related to expired x509 certificates.
+For more information, see xref:troubleshooting-expired-certificates[Troubleshooting expired certificates].
+
+.Procedure
+To troubleshoot {prod}, perform the following steps:
+
+. Stop the {prod} instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} stop
+----
+
+. Save any desired information stored in your existing instance.
+
+. Delete the existing {prod} instance.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} delete
+----
+
+. Clean up remaining changes from the [command]`{bin} setup` command:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} cleanup
+----
++
+[NOTE]
+====
+The [command]`{bin} cleanup` command removes an existing {prod} instance and reverts changes to DNS entries created by the [command]`{bin} setup` command.
+====
+
+. Set up your host machine to reapply the changes:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} setup
+----
+
+. Start the {prod} instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+----
++
+[NOTE]
+====
+The cluster takes a minimum of four minutes to start the necessary containers and Operators before serving a request.
+====
+
+If your issue is not resolved by this procedure, perform the following steps:
+
+. link:https://github.com/crc-org/crc/issues[Search open issues] for the issue that you are encountering.
+. If no existing issue addresses the encountered issue, link:https://github.com/crc-org/crc/issues/new[create an issue] and link:https://help.github.com/en/articles/file-attachments-on-issues-and-pull-requests[attach the [filename]*_~/.crc/crc.log_* file] to the created issue.
+The [filename]*_~/.crc/crc.log_* file has detailed debugging and troubleshooting information which can help diagnose the problem that you are experiencing.

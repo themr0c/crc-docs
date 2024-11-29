@@ -1,0 +1,70 @@
+:description: Administrative tasks
+= Administrative tasks
+
+== Starting monitoring
+
+{prod} disables cluster monitoring by default to ensure that {prod} can run on a typical notebook.
+Monitoring is responsible for listing your cluster in the link:https://console.redhat.com/openshift[Red Hat Hybrid Cloud Console].
+Follow this procedure to enable monitoring for your cluster.
+
+.Prerequisites
+* You must assign additional memory to the {prod} instance.
+At least 14 GiB of memory, a value of `14336`, is recommended for core functionality.
+Increased workloads will require more memory.
+For more information, see xref:configuring.adoc#configuring-the-instance[Configuring the instance].
+
+.Procedure
+. Set the `enable-cluster-monitoring` configurable property to `true`:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config set enable-cluster-monitoring true
+----
+
+. Start the instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+----
++
+[WARNING]
+====
+Cluster monitoring cannot be disabled.
+To remove monitoring, set the `enable-cluster-monitoring` configurable property to `false` and delete the existing {prod} instance.
+====
+
+== Enabling override Operators
+
+To verify {prod} can run on a typical notebook, some resource-heavy services get disabled by default.
+These services can be enabled by manually removing the desired Operator from the Operator override list.
+
+.Prerequisites
+* A running {prod} virtual machine and a working [command]`oc` command.
+For more information, see xref:using.adoc#accessing-the-openshift-cluster-with-the-openshift-cli[Accessing the OpenShift cluster with `oc`].
+* You must log in through [command]`oc` as the `kubeadmin` user.
+
+.Procedure
+. List unmanaged Operators and note the numeric index for the desired Operator:
+
+** On Linux or {mac}:
++
+[subs="+quotes"]
+----
+$ oc get clusterversion version -ojsonpath='{range .spec.overrides[*]}{.name}{"\n"}{end}' | nl -v -2
+----
+
+** On {msw} using PowerShell:
++
+[subs="+quotes"]
+----
+PS> oc get clusterversion version -ojsonpath='{range .spec.overrides[*]}{.name}{"\n"}{end}' | % {$nl++;"`t$($nl-3) `t $_"};$nl=0
+----
+
+. Start the desired Operator using the identified numeric index:
++
+[subs="+quotes"]
+----
+$ oc patch clusterversion/version --type='json' -p '[{"op":"remove", "path":"/spec/overrides/_<unmanaged-operator-index>_"}]'
+clusterversion.config.openshift.io/version patched
+----
