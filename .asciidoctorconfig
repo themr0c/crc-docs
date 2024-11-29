@@ -1,0 +1,10 @@
+// .asciidoctorconfig
+// Specifies Asciidoctor configuration to preview files in the editor
+// See: https://intellij-asciidoc-plugin.ahus1.de/docs/users-guide/features/advanced/asciidoctorconfig-file.html
+
+:docinfo: shared
+:docinfodir: {asciidoctorconfigdir}/.asciidoctor
+:toc:
+:linkcss:
+:stylesdir: https://crc.dev/docs/_/css/
+:stylesheet: site.css

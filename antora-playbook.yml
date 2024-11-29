@@ -1,7 +1,7 @@
 ---
 site:
   title: CRC Documentation
-  start_page: getting_started:getting_started:introducing.adoc
+  start_page: ROOT::introducing.adoc
   url: https://crc.dev/docs
   robots: allow
 content:
@@ -55,10 +55,8 @@ asciidoc:
     bin: crc
     # Documentation naming
     context: crc
-    crc-gsg: CRC Getting Started Guide
     # URLs
     crc-download-url: https://console.redhat.com/openshift/create/local
-    crc-gsg-url: https://crc.dev/crc/
     openshift-installer-url: https://console.redhat.com/openshift/create
     openshift-docs-url: https://docs.openshift.com/container-platform/latest
     openshift-docs-url-landing-page: "{openshift-docs-url}/welcome/index.html#developer-activities"

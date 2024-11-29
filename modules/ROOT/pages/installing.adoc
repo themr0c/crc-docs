@@ -1,0 +1,230 @@
+:description: Installing {prod}
+= Installing {prod}
+
+[id='minimum-system-requirements']
+== Minimum system requirements
+
+[role="_abstract"]
+{prod} has the following minimum hardware and operating system requirements.
+
+=== Hardware requirements
+
+{prod} is supported on these architectures:
+
+.Preset and architecture compatibility
+[%header,format=csv,cols="2,1,1,1"]
+|===
+Preset, AMD63, Intel 64, Apple silicon
+{ocp}, yes, yes,  yes
+{okd}, yes, yes, no
+{ushift}, yes, yes, yes
+|===
+
+{prod} does not support nested virtualization.
+
+Depending on the desired container runtime, {prod} requires the following system resources:
+
+==== For {ocp}
+
+* 4 physical CPU cores
+* 10.5 GB of free memory
+* 35 GB of storage space
+
+==== For {ushift}
+
+* 2 physical CPU cores
+* 4 GB of free memory
+* 35 GB of storage space
+
+[NOTE]
+====
+The {ocp} and {ushift} presets require these minimum resources to run in the {prod} instance.
+Some workloads might require more resources.
+To assign more resources to the {prod} instance, see xref:configuring.adoc[Configuring the instance].
+====
+
+=== Operating system requirements
+
+{prod} requires the following minimum version of a supported operating system:
+
+{msw}::
+
+* Fully updated {msw} 10 or {msw} 11.
+* {prod} does not work on earlier {msw} versions.
+* {prod} does not work on {msw} Home Edition.
+
+{mac}::
+
+* {mac} 13 Ventura or later.
+* {prod} does not work on earlier {mac} versions.
+
+Linux::
+
+{rhel}:::
+* Latest two minor releases.
+* The host running {prod} is link:https://access.redhat.com/solutions/253273[registered with the Red Hat Customer Portal].
+* `libvirt` and `NetworkManager` packages are installed.
++
+----
+sudo dnf install libvirt NetworkManager
+----
+
+{centos}:::
+* Latest two 8 and 9 minor releases.
+* `libvirt` and `NetworkManager` packages are installed.
++
+----
+sudo dnf install libvirt NetworkManager
+----
+
+{fed}:::
+* Latest two stable releases.
+* `libvirt` and `NetworkManager` packages are installed.
++
+----
+sudo dnf install libvirt NetworkManager
+----
+
+{ubuntu} 18.04 LTS or later and {debian} 10 or later:::
+* Not supported.
+* Might require manual set up of the host machine.
+* `libvirt` and `network-manager` packages are installed.
++
+----
+sudo apt install qemu-kvm libvirt-daemon libvirt-daemon-system network-manager
+----
+
+[id='installing']
+== Installing {prod}
+
+{prod} is available as a portable executable for {rhel}.
+On {msw} and {mac}, {prod} is available using a guided installer.
+
+.Prerequisites
+* Your host machine meets the xref:minimum-system-requirements[minimum system requirements].
+
+.Procedure
+. Download the link:{crc-download-url}[latest release of {prod}] for your platform.
+
+. On {msw}, extract the contents of the archive.
+
+. On {mac} or {msw}, run the guided installer and follow the instructions.
++
+[NOTE]
+====
+On {msw}, you must install {prod} to your local [filename]*_C:\_* drive.
+You cannot run {prod} from a network drive.
+====
++
+On {rhel}, assuming the archive is in the [filename]*_~/Downloads_* directory, follow these steps:
++
+.. Extract the contents of the archive:
++
+[subs="attributes"]
+----
+$ cd ~/Downloads
+$ tar xvf crc-linux-amd64.tar.xz
+----
++
+.. Create the [filename]*_~/bin_* directory if it does not exist and copy the [command]`{bin}` executable to it:
++
+[subs="attributes"]
+----
+$ mkdir -p ~/bin
+$ cp ~/Downloads/crc-linux-*-amd64/{bin} ~/bin
+----
++
+.. Add the [filename]*_~/bin_* directory to your `$PATH`:
++
+[subs="attributes"]
+----
+$ export PATH=$PATH:$HOME/bin
+$ echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
+----
+
+== Configuring usage data collection
+
+{prod} prompts you before use for link:{telemetry-notice-url}[optional, anonymous usage data collection to assist with development].
+No personally identifiable information is collected.
+
+[id='consenting-usage-data-collection']
+=== Consenting usage data collection
+
+You can grant consent for usage data collection at any time.
+
+.Procedure
+. Configure {prod} to grant consent for usage data collection.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config set consent-telemetry yes
+----
+. Restart your {prod} instance to enable the change.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} stop
+$ {bin} start
+----
+
+[id='revoking-usage-data-collection']
+=== Revoking usage data collection
+
+You can revoke consent for usage data collection at any time.
+
+.Procedure
+. Configure {prod} to revoke consent for usage data collection.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config set consent-telemetry no
+----
+. Restart your {prod} instance to enable the change.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} stop
+$ {bin} start
+----
+
+.Additional resources
+* link:{telemetry-notice-url}[{rh} Telemetry data collection notice].
+
+[id='upgrading']
+== Upgrading {prod}
+
+Newer versions of the {prod} executable require manual set up to prevent potential incompatibilities with earlier versions.
+
+.Procedure
+. link:{crc-download-url}[Download the latest {prod} release].
+
+. Save any desired information stored in your existing instance.
+
+. Delete the existing {prod} instance.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} delete
+----
+
+. Replace the earlier [command]`{bin}` executable with the executable of the latest release.
+Verify that the new [command]`{bin}` executable is in use by checking its version:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} version
+----
+
+. Set up the new {prod} release:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} setup
+----
+
+. Start the new {prod} instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+----

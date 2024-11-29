@@ -1,0 +1,391 @@
+:description: Using {prod}
+[id="using_{context}"]
+= Using {prod}
+
+[id='about-presets']
+== About presets
+
+[role="_abstract"]
+{prod} presets represent a managed container runtime, and the lower bounds of system resources required by the instance to run it.
+{prod} offers presets for:
+
+`openshift`:: {ocp}
+`okd`:: {okd}
+`microshift`::  {ushift}
+
+On {msw} and {mac}, the {prod} guided installer prompts you for your desired preset.
+On Linux, the {ocp} preset is selected by default.
+You can change this selection using the [command]`{bin} config` command before running the [command]`{bin} setup` command.
+Only one preset can be active at a time.
+
+[role="_additional-resources"]
+.Additional resources
+* xref:installing.adoc#minimum-system-requirements[Minimum system requirements].
+* xref:configuring.adoc#changing-the-selected-preset[Changing the selected preset].
+
+[id='setting-up']
+== Setting up {prod}
+
+[role="_abstract"]
+The [command]`{bin} setup` command performs operations to set up the environment of your host machine for the {prod} instance.
+
+The [command]`{bin} setup` command creates the [filename]*_~/.crc_* directory if it does not already exist.
+
+[WARNING]
+====
+If you are setting up a new version, capture any changes made to the instance before setting up a new {prod} release.
+====
+
+.Prerequisites
+* On Linux or {mac}, ensure that your user account has permission to use the [command]`sudo` command.
+On {msw}, ensure that your user account can elevate to Administrator privileges.
+
+[NOTE]
+====
+Do not run the [command]`{bin}` executable as the `root` user or an administrator.
+Always run the [command]`{bin}` executable with your user account.
+====
+
+.Procedure
+. Set up your host machine for {prod}:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} setup
+----
+
+[role="_additional-resources"]
+.Additional resources
+* xref:about-presets[About presets].
+
+[id='starting-the-instance']
+== Starting the instance
+
+The [command]`{bin} start` command starts the {prod} instance and configured container runtime.
+
+.Prerequisites
+* To avoid networking-related issues, ensure that you are not connected to a VPN and that your network connection is reliable.
+* You have xref:setting-up[set up {prod}].
+* On {msw}, ensure that your user account can elevate to Administrator privileges.
+* For the {openshift} preset, ensure that you have a valid {openshift} user pull secret.
+Copy or download the pull secret from the Pull Secret section of the link:https://console.redhat.com/openshift/create/local[{prod} page on the {rh} Hybrid Cloud Console].
++
+[NOTE]
+====
+Accessing the user pull secret requires a Red Hat account.
+====
+
+.Procedure
+. Start the {prod} instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+----
+
+. For the {openshift} preset, supply your user pull secret when prompted.
++
+[NOTE]
+====
+The cluster takes a minimum of four minutes to start the necessary containers and Operators before serving a request.
+====
+
+.Additional resources
+* xref:configuring.adoc#configuring-the-instance[Configuring the resources allocated to the instance].
+* If you see errors during [command]`{bin} start`, see the xref:troubleshooting.adoc[Troubleshooting {prod}] section for potential solutions.
+
+[id='accessing-the-openshift-cluster']
+== Accessing the {openshift} cluster
+
+Access the {ocp} cluster running in the {prod} instance by using the {ocp} web console or {openshift} CLI ([command]`oc`).
+
+[id='accessing-the-openshift-web-console']
+=== Accessing the {openshift} web console
+
+Access the {ocp} web console by using your web browser.
+
+Access the cluster by using either the `kubeadmin` or `developer` user.
+Use the `developer` user for creating projects or {openshift} applications and for application deployment.
+Use the `kubeadmin` user only for administrative tasks such as creating new users or setting roles.
+
+.Prerequisites
+* {prod} is configured to use the {openshift} preset.
+See: xref:configuring.adoc#changing-the-selected-preset[Changing the selected preset].
+* A running {prod} instance.
+See: xref:starting-the-instance[Starting the instance].
+
+.Procedure
+. To access the {ocp} web console with your default web browser, run the following command:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} console
+----
+
+. Log in as the `developer` user with the password printed in the output of the [command]`{bin} start` command.
+You can also view the password for the `developer` and `kubeadmin` users by running the following command:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} console --credentials
+----
+
+See xref:troubleshooting.adoc[Troubleshooting {prod}] if you cannot access the {ocp} cluster managed by {prod}.
+
+.Additional resources
+* The link:https://docs.openshift.com/container-platform/latest/applications/projects/working-with-projects.html[{ocp} documentation] covers the creation of projects and applications.
+
+[id='accessing-the-openshift-cluster-with-the-openshift-cli']
+=== Accessing the {openshift} cluster with the {openshift} CLI
+
+Access the {ocp} cluster managed by {prod} by using the {openshift} CLI ([command]`oc`).
+
+.Prerequisites
+* {prod} is configured to use the {openshift} preset.
+See: xref:configuring.adoc#changing-the-selected-preset[Changing the selected preset].
+* A running {prod} instance.
+See: xref:starting-the-instance[Starting the instance].
+
+.Procedure
+. Run the [command]`{bin} oc-env` command to print the command needed to add the cached [command]`oc` executable to your `$PATH`:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} oc-env
+----
+
+. Run the printed command.
+
+. Log in as the `developer` user:
++
+[subs="+quotes,attributes"]
+----
+$ oc login -u developer https://api.crc.testing:6443
+----
++
+[NOTE]
+====
+The [command]`{bin} start` command prints the password for the `developer` user.
+You can also view it by running the [command]`{bin} console --credentials` command.
+====
+
+. You can now use [command]`oc` to interact with your {ocp} cluster.
+For example, to verify that the {ocp} cluster Operators are available, log in as the `kubeadmin` user and run the following command:
++
+[subs="+quotes,attributes",options="nowrap"]
+----
+$ oc config use-context crc-admin
+$ oc whoami
+kubeadmin
+$ oc get co
+----
++
+[NOTE]
+====
+{prod} disables the Cluster Monitoring Operator by default.
+====
+
+See xref:troubleshooting.adoc[Troubleshooting {prod}] if you cannot access the {ocp} cluster managed by {prod}.
+
+.Additional resources
+* The link:https://docs.openshift.com/container-platform/latest/applications/projects/working-with-projects.html[{ocp} documentation] covers the creation of projects and applications.
+
+[id='accessing-the-internal-openshift-registry']
+=== Accessing the internal {openshift} registry
+
+The {ocp} cluster running in the {prod} instance includes an internal container image registry by default.
+This internal container image registry can be used as a publication target for locally developed container images.
+To access the internal {ocp} registry, follow these steps.
+
+.Prerequisites
+* {prod} is configured to use the {openshift} preset.
+See: xref:configuring.adoc#changing-the-selected-preset[Changing the selected preset].
+* A running {prod} instance.
+See: xref:starting-the-instance[Starting the instance].
+* A working {openshift} CLI ([command]`oc`) command.
+See: xref:accessing-the-openshift-cluster-with-the-openshift-cli[Accessing the {openshift} cluster with the {openshift} CLI].
+
+.Procedure
+. Check which user is logged in to the cluster:
++
+[subs="+quotes,attributes"]
+----
+$ oc whoami
+----
++
+[NOTE]
+====
+For demonstration purposes, the current user is assumed to be `kubeadmin`.
+====
+
+. Log in to the registry as that user with its token:
++
+[subs="+quotes,attributes"]
+----
+$ oc registry login --insecure=true
+----
+
+. Create a new project:
++
+[subs="+quotes,attributes"]
+----
+$ oc new-project demo
+----
+
+. Mirror an example container image:
++
+[subs="+quotes,attributes"]
+----
+$ oc image mirror registry.access.redhat.com/ubi8/ubi:latest=default-route-openshift-image-registry.apps-crc.testing/demo/ubi8:latest --insecure=true --filter-by-os=linux/amd64
+----
+
+. Get imagestreams and verify that the pushed image is listed:
++
+[subs="+quotes,attributes"]
+----
+$ oc get is
+----
+
+. Enable image lookup in the imagestream:
++
+[subs="+quotes,attributes"]
+----
+$ oc set image-lookup ubi8
+----
++
+This setting allows the imagestream to be the source of images without having to provide the full URL to the internal registry.
+
+. Create a pod using the recently pushed image:
++
+[subs="+quotes,attributes"]
+----
+$ oc run demo --image=ubi8 --command -- sleep 600s
+----
+
+[id='deploying-a-sample-application-with-odo']
+== Deploying a sample application with `odo`
+
+You can use [command]`odo` to create {openshift} projects and applications from the command line.
+This procedure deploys a sample application to the {ocp} cluster running in the {prod} instance.
+
+.Prerequisites
+* You have installed [command]`odo`.
+For more information, see link:{odo-docs-url-installing}[Installing `odo`] in the [command]`odo` documentation.
+* {prod} is configured to use the {openshift} preset.
+See: xref:configuring.adoc#changing-the-selected-preset[Changing the selected preset].
+* The {prod} instance is running.
+See: xref:starting-the-instance[Starting the instance].
+
+.Procedure
+. Log in to the running {ocp} cluster managed by {prod} as the `developer` user:
++
+[subs="+quotes,attributes"]
+----
+$ odo login -u developer -p developer
+----
+
+. Create a project for your application:
++
+[subs="+quotes,attributes"]
+----
+$ odo project create sample-app
+----
+
+. Create a directory for your components:
++
+[subs="+quotes,attributes"]
+----
+$ mkdir sample-app
+$ cd sample-app
+----
+
+. Clone an example Node.js application:
++
+[subs="+quotes,attributes"]
+----
+$ git clone https://github.com/openshift/nodejs-ex
+$ cd nodejs-ex
+----
+
+. Add a `nodejs` component to the application:
++
+[subs="+quotes,attributes"]
+----
+$ odo create nodejs
+----
+
+. Create a URL and add an entry to the local configuration file:
++
+[subs="+quotes,attributes"]
+----
+$ odo url create --port 8080
+----
+
+. Push the changes:
++
+[subs="+quotes,attributes"]
+----
+$ odo push
+----
++
+Your component is now deployed to the cluster with an accessible URL.
+
+. List the URLs and check the desired URL for the component:
++
+[subs="+quotes,attributes"]
+----
+$ odo url list
+----
+
+. View the deployed application using the generated URL.
+
+.Additional resources
+* For more information about using [command]`odo`, see the link:{odo-docs-url}[`odo` documentation].
+
+[id='stopping-the-instance']
+== Stopping the instance
+
+The [command]`{bin} stop` command stops the running {prod} instance and container runtime.
+The stopping process takes a few minutes while the cluster shuts down.
+
+.Procedure
+* Stop the {prod} instance and container runtime:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} stop
+----
+
+[id='restarting-the-instance']
+== Restarting the instance
+
+To restart {prod}, stop the instance and start it again.
+
+.Procedure
+. Stop the {prod} instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} stop
+----
+. Start the {prod} instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+----
+
+[id='deleting-the-instance']
+== Deleting the instance
+
+The [command]`{bin} delete` command deletes an existing {prod} instance.
+
+.Procedure
+. Save any desired information stored in your existing instance.
+
+. Delete the existing {prod} instance.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} delete
+----

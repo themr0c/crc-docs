@@ -1,7 +1,7 @@
 ---
-name: getting_started
+name: ROOT # Publish without subdirectory
 title: Getting started with CRC
 version: ~ # Unversioned component version
-start_page: getting_started:introducing.adoc
+start_page: introducing.adoc
 nav:
-  - modules/getting_started/nav.adoc
+  - modules/ROOT/nav.adoc

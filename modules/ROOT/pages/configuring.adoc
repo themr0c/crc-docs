@@ -1,0 +1,138 @@
+:description: Configuring {prod}
+= Configuring {prod}
+
+[id='about-configuration']
+== About {prod} configuration
+
+Use the [command]`{bin} config` command to configure both the [command]`{bin}` executable and the {prod} instance.
+The [command]`{bin} config` command requires a subcommand to act on the configuration.
+The available subcommands are `get`, `set,` `unset`, and `view`.
+The `get`, `set`, and `unset` subcommands operate on named configurable properties.
+Run the [command]`{bin} config --help` command to list the available properties.
+
+You can also use the [command]`{bin} config` command to configure the behavior of the startup checks for the [command]`{bin} start` and [command]`{bin} setup` commands.
+By default, startup checks report an error and stop execution when their conditions are not met.
+Set the value of a property starting with `skip-check` to `true` to skip the check.
+
+[id='viewing-configuration']
+== Viewing {prod} configuration
+
+The {prod} executable provides commands to view configurable properties and the current {prod} configuration.
+
+.Procedure
+. To view the complete current configuration diverting from default values:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config view
+----
+
+. To list the available configurable properties:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config --help
+----
+
+. To view the values for a configurable property:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config get _<property>_
+----
+
+[id='changing-the-selected-preset']
+== Changing the selected preset
+
+You can change the container runtime used for the {prod} instance by selecting the desired preset before creating the instance.
+
+You cannot change the preset of an existing {prod} instance.
+
+.Procedure
+. Change the selected preset from the command line:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config set preset __<name>__
+----
++
+Valid preset names are:
++
+.Preset names
+[%header,format=csv,cols="1,2"]
+|===
+Name, Preset
+`openshift`, {ocp}
+`okd`, {okd}
+`microshift`, {ushift}
+|===
+
+. Save any desired information stored in your existing instance.
+
+. Delete the existing {prod} instance.
++
+[subs="+quotes,attributes"]
+----
+$ {bin} delete
+----
+
+. Start the new {prod} instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+----
+
+[id='configuring-the-instance']
+== Configuring the instance
+
+Use the `cpus` and `memory` properties to configure the default number of vCPUs and amount of memory available to the {prod} instance, respectively.
+
+Alternatively, the number of vCPUs and amount of memory can be assigned using the `--cpus` and `--memory` flags to the `{bin} start` command, respectively.
+
+[IMPORTANT]
+====
+You cannot change the configuration of a running {prod} instance.
+To enable configuration changes, you must stop the running instance and start it again.
+====
+
+.Procedure
+. To configure the number of vCPUs available to the instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config set cpus __<number>__
+----
++
+The default value for the `cpus` property is `4`.
+The number of vCPUs to assign must be greater than or equal to the default.
+
+. To start the instance with the desired number of vCPUs:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start --cpus __<number>__
+----
+
+. To configure the memory available to the instance:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config set memory __<number-in-mib>__
+----
++
+[NOTE]
+====
+Values for available memory are set in mebibytes (MiB).
+One gibibyte (GiB) of memory is equal to 1024 MiB.
+====
++
+The default value for the `memory` property is `10752`.
+The amount of memory to assign must be greater than or equal to the default.
+
+. To start the instance with the desired amount of memory:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start --memory __<number-in-mib>__
+----

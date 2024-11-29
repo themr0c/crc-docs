@@ -1,0 +1,307 @@
+:description: Networking
+= Networking
+
+== DNS configuration details
+
+=== General DNS setup
+
+The {ocp} cluster managed by {prod} uses 2 DNS domain names, `crc.testing` and `apps-crc.testing`.
+The `crc.testing` domain is for core {ocp} services.
+The `apps-crc.testing` domain is for accessing {openshift} applications deployed on the cluster.
+
+For example, the {ocp} API server is exposed as `api.crc.testing` while the {ocp} console is accessed as `console-openshift-console.apps-crc.testing`.
+These DNS domains are served by a `dnsmasq` DNS container running inside the {prod} instance.
+
+The [command]`{bin} setup` command detects and adjusts your system DNS configuration so that it can resolve these domains.
+Additional checks are done to verify DNS is properly configured when running [command]`{bin} start`.
+
+=== DNS on Linux
+
+On Linux, depending on your distribution, {prod} expects the following DNS configuration:
+
+==== NetworkManager + systemd-resolved
+
+This configuration is used by default on Fedora 33 or newer, and on Ubuntu Desktop editions.
+
+* {prod} expects NetworkManager to manage networking.
+* {prod} configures `systemd-resolved` to forward requests for the `testing` domain to the `192.168.130.11` DNS server.
+`192.168.130.11` is the IP of the {prod} instance.
+* `systemd-resolved` configuration is done with a NetworkManager dispatcher script in [filename]*_/etc/NetworkManager/dispatcher.d/99-crc.sh_*:
++
+----
+#!/bin/sh
+
+export LC_ALL=C
+
+systemd-resolve --interface crc --set-dns 192.168.130.11 --set-domain ~testing
+
+exit 0
+----
+
+[NOTE]
+====
+`systemd-resolved` is also available as an unsupported Technology Preview on {rhel} and {centos} 8.3.
+After {rhel-resolved-docs}[configuring the host] to use `systemd-resolved`, stop any running clusters and rerun [command]`{bin} setup`.
+====
+
+==== NetworkManager + dnsmasq
+
+This configuration is used by default on Fedora 32 or older, on {rhel}, and on {centos}.
+
+* {prod} expects NetworkManager to manage networking.
+* NetworkManager uses `dnsmasq` with the [filename]*_/etc/NetworkManager/conf.d/crc-nm-dnsmasq.conf_* configuration file.
+* The configuration file for this `dnsmasq` instance is [filename]*_/etc/NetworkManager/dnsmasq.d/crc.conf_*:
++
+----
+server=/crc.testing/192.168.130.11
+server=/apps-crc.testing/192.168.130.11
+----
+
+** The NetworkManager `dnsmasq` instance forwards requests for the `crc.testing` and `apps-crc.testing` domains to the `192.168.130.11` DNS server.
+
+== Reserved IP subnets
+
+The {ocp} cluster managed by {prod} reserves IP subnets for internal use, which should not collide with your host network.
+Ensure that the following IP subnets are available for use:
+
+.Reserved IP subnets
+* `10.217.0.0/22`
+* `10.217.4.0/23`
+* `192.168.126.0/24`
+
+Additionally, the host hypervisor might reserve another IP subnet depending on the host operating system.
+No additional subnet is reserved on {mac} and {msw}.
+The additional reserved subnet for Linux is `192.168.130.0/24`.
+
+== Starting {prod} behind a proxy
+
+You can start {prod} behind a defined proxy using environment variables or configurable properties.
+
+[NOTE]
+====
+SOCKS proxies are not supported by {ocp}.
+====
+
+.Prerequisites
+* If you are not using [command]`crc oc-env`, when interacting with the cluster, export the `.testing` domain as part of the `no_proxy` environment variable.
+The embedded [command]`oc` executable does not require manual settings.
+For more information about using the embedded [command]`oc` executable, see xref:using.adoc#accessing-the-openshift-cluster-with-the-openshift-cli[Accessing the {openshift} cluster with the {openshift} CLI].
+
+.Procedure
+. Define a proxy using the `http_proxy` and `https_proxy` environment variables or using the [command]`{bin} config set` command as follows:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config set http-proxy http://proxy.example.com:__<port>__
+$ {bin} config set https-proxy http://proxy.example.com:__<port>__
+$ {bin} config set no-proxy __<comma-separated-no-proxy-entries>__
+----
+
+. If the proxy uses a custom CA certificate file, set it as follows:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} config set proxy-ca-file __<path-to-custom-ca-file>__
+----
+
+[NOTE]
+====
+Proxy-related values set in the configuration for {prod} have priority over values set with environment variables.
+====
+
+== Accessing services running on your host from {prod}
+
+When you run services on your host, you can configure {prod} to access these services.
+
+.Prerequisites
+* You have a service which is running on your host and want to consume it with {prod}.
+* You are using the user mode network. On {mac} and {msw} this is the default behavior.
+
+
+.Procedure
+. Enable accessing services from host to {prod}:
++
+----
+$ crc config set host-network-access true
+----
+
+. Verify that the {prod} configuration uses user network mode and enables host network access:
++
+----
+$ crc config view
+[...]
+- network-mode                          : user
+- host-network-access                   : true
+[...]
+----
+
+. If {prod} instance is already running then restart it (stop => start), otherwise just start it.
++
+----
+$ crc stop && crc start
+----
+
+.Verification
+Assuming your service is running on the host on port `8080`, to access
+it from the {prod} instance, use `host.crc.testing:8080`.
+
+[id='setting-up-on-a-remote-server']
+== Setting up {prod} on a remote server
+
+Configure a remote server to run an {ocp} cluster provided by {prod}.
+
+This procedure assumes the use of a {rhel}, {fed}, or {centos} server.
+Run every command in this procedure on the remote server.
+
+[WARNING]
+====
+**Perform this procedure only on a local network.**
+Exposing an insecure server on the internet has many security implications.
+====
+
+.Prerequisites
+* {prod} is installed and set up on the remote server.
+For more information, see xref:installing.adoc[Installing {prod}] and xref:using.adoc#setting-up[Setting up {prod}].
+* {prod} is configured to use the {openshift} preset on the remote server.
+For more information, see xref:configuring.adoc#changing-the-selected-preset[Changing the selected preset].
+* Your user account has `sudo` permissions on the remote server.
+
+.Procedure
+. Start the cluster:
++
+[subs="+quotes,attributes"]
+----
+$ {bin} start
+----
++
+Ensure that the cluster remains running during this procedure.
+
+. Install the [package]`haproxy` package and other utilities:
++
+----
+$ sudo dnf install haproxy /usr/sbin/semanage
+----
+
+. Modify the firewall to allow communication with the cluster:
++
+----
+$ sudo systemctl enable --now firewalld
+$ sudo firewall-cmd --add-service=http --permanent
+$ sudo firewall-cmd --add-service=https --permanent
+$ sudo firewall-cmd --add-service=kube-apiserver --permanent
+$ sudo firewall-cmd --reload
+----
+
+. For SELinux, allow HAProxy to listen on TCP port 6443 to serve `kube-apiserver` on this port:
++
+----
+$ sudo semanage port -a -t http_port_t -p tcp 6443
+----
+
+. Create a backup of the default [application]`haproxy` configuration:
++
+----
+$ sudo cp /etc/haproxy/haproxy.cfg{,.bak}
+----
+
+. Configure [application]`haproxy` for use with the cluster:
++
+[subs="+quotes,attributes"]
+----
+$ export CRC_IP=$({bin} ip)
+$ sudo tee /etc/haproxy/haproxy.cfg &>/dev/null <<EOF
+global
+    log /dev/log local0
+
+defaults
+    balance roundrobin
+    log global
+    maxconn 100
+    mode tcp
+    timeout connect 5s
+    timeout client 500s
+    timeout server 500s
+
+listen apps
+    bind 0.0.0.0:80
+    server crcvm $CRC_IP:80 check
+
+listen apps_ssl
+    bind 0.0.0.0:443
+    server crcvm $CRC_IP:443 check
+
+listen api
+    bind 0.0.0.0:6443
+    server crcvm $CRC_IP:6443 check
+EOF
+----
+
+. Start the [application]`haproxy` service:
++
+----
+$ sudo systemctl start haproxy
+----
+
+== Connecting to a remote {prod} instance
+
+Use [application]`dnsmasq` to connect a client machine to a remote server running an {ocp} cluster managed by {prod}.
+
+This procedure assumes the use of a {rhel}, {fed}, or {centos} client.
+Run every command in this procedure on the client.
+
+[IMPORTANT]
+====
+**Connect to a server that is only exposed on your local network.**
+====
+
+.Prerequisites
+* A remote server is set up for the client to connect to.
+For more information, see xref:setting-up-on-a-remote-server[Setting up {prod} on a remote server].
+* You know the external IP address of the server.
+* You have the link:{oc-download-url}[latest {openshift} CLI ([command]`oc`)] in your `$PATH` on the client.
+
+.Procedure
+. Install the [package]`dnsmasq` package:
++
+----
+$ sudo dnf install dnsmasq
+----
+
+. Enable the use of [application]`dnsmasq` for DNS resolution in NetworkManager:
++
+----
+$ sudo tee /etc/NetworkManager/conf.d/use-dnsmasq.conf &>/dev/null <<EOF
+[main]
+dns=dnsmasq
+EOF
+----
+
+. Add DNS entries for {prod} to the [application]`dnsmasq` configuration:
++
+[subs="+quotes"]
+----
+$ sudo tee /etc/NetworkManager/dnsmasq.d/external-crc.conf &>/dev/null <<EOF
+address=/apps-crc.testing/__SERVER_IP_ADDRESS__
+address=/api.crc.testing/__SERVER_IP_ADDRESS__
+EOF
+----
++
+[NOTE]
+====
+Comment out any existing entries in [filename]*_/etc/NetworkManager/dnsmasq.d/crc.conf_*.
+These entries are created by running a local instance of {prod} and will conflict with the entries for the remote cluster.
+====
+
+. Reload the NetworkManager service:
++
+----
+$ sudo systemctl reload NetworkManager
+----
+
+. Log in to the remote cluster as the `developer` user with [command]`oc`:
++
+----
+$ oc login -u developer -p developer https://api.crc.testing:6443
+----
++
+The remote {ocp} web console is available at \https://console-openshift-console.apps-crc.testing.
