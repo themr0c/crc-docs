@@ -1,0 +1,8 @@
+.Preset names
+[%header,format=csv,cols="1,2"]
+|===
+Name, Preset
+`openshift`, {ocp}
+`okd`, {okd}
+`microshift`, {ushift}
+|===

@@ -1,0 +1,3 @@
+`openshift`:: {ocp}
+`okd`:: {okd}
+`microshift`::  {ushift}

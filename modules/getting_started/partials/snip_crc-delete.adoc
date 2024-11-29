@@ -1,0 +1,10 @@
+[subs="+quotes,attributes"]
+----
+$ {bin} delete
+----
++
+[WARNING]
+====
+The [command]`{bin} delete` command results in the loss of data stored in the {prod} instance.
+Save any desired information stored in the instance before running this command.
+====
