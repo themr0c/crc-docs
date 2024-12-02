@@ -16,7 +16,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
       - name: Build docs
-        run: CONTAINER_RUNTIME=docker make build_docs
+        run: CONTAINER_RUNTIME=docker CI=true make build_docs
       #- name: Check links in docs
       #  run: CONTAINER_RUNTIME=docker make docs_check_links
       - name: Deploy
