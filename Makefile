@@ -7,6 +7,12 @@ DOCS_SERVE_CONTAINER ?= docker.io/httpd:alpine
 DOCS_TEST_CONTAINER ?= docker.io/wjdp/htmltest:latest
 DOCS_BUILD_TARGET ?= ./source/getting_started/master.adoc
 
+CONTAINER_RUNTIME ?= podman
+SELINUX_VOLUME_LABEL = :Z
+ifeq ($(GOOS),darwin)
+SELINUX_VOLUME_LABEL :=
+endif
+
 .PHONY: build_docs
 build_docs:
 	${CONTAINER_RUNTIME} run -v $(CURDIR):/antora$(SELINUX_VOLUME_LABEL) --rm $(DOCS_BUILD_CONTAINER) --stacktrace antora-playbook.yml
