@@ -15,7 +15,7 @@ endif
 
 .PHONY: build_docs
 build_docs:
-	${CONTAINER_RUNTIME} run -v $(CURDIR):/antora$(SELINUX_VOLUME_LABEL) --rm $(DOCS_BUILD_CONTAINER) --stacktrace antora-playbook.yml
+	${CONTAINER_RUNTIME} run --env-host -v $(CURDIR):/antora$(SELINUX_VOLUME_LABEL) --rm $(DOCS_BUILD_CONTAINER) --stacktrace antora-playbook.yml
 
 .PHONY: docs_serve
 docs_serve: build_docs
