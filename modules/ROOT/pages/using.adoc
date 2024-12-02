@@ -1,4 +1,5 @@
 :description: Using {prod}
+:page-aliases: getting_started:getting_started:using.adoc
 [id="using_{context}"]
 = Using {prod}
 

@@ -1,4 +1,5 @@
 :description: Introducing  {prod}
+:page-aliases: getting_started:getting_started:introducing.adoc
 = Introducing {rh-prod}
 
 [id='about']

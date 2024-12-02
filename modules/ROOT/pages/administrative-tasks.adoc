@@ -1,4 +1,5 @@
 :description: Administrative tasks
+:page-aliases: getting_started:getting_started:administrative-tasks.adoc
 = Administrative tasks
 
 == Starting monitoring

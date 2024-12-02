@@ -1,4 +1,5 @@
 :description: Networking
+:page-aliases: getting_started:getting_started:networking.adoc
 = Networking
 
 == DNS configuration details

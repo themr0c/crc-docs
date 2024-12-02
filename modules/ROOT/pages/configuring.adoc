@@ -1,4 +1,5 @@
 :description: Configuring {prod}
+:page-aliases: getting_started:getting_started:configuring.adoc
 = Configuring {prod}
 
 [id='about-configuration']

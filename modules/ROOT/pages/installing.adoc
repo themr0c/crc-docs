@@ -1,4 +1,5 @@
 :description: Installing {prod}
+:page-aliases: getting_started:getting_started:installing.adoc
 = Installing {prod}
 
 [id='minimum-system-requirements']
