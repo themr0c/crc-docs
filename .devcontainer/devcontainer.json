@@ -1,0 +1,13 @@
+{
+    "name": "antora environment",
+    "build": {
+        "dockerfile": "Containerfile"
+    },
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+            ]
+        }
+    }
+}
