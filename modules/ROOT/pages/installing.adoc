@@ -142,54 +142,6 @@ $ export PATH=$PATH:$HOME/bin
 $ echo 'export PATH=$PATH:$HOME/bin' >> ~/.bashrc
 ----
 
-== Configuring usage data collection
-
-{prod} prompts you before use for link:{telemetry-notice-url}[optional, anonymous usage data collection to assist with development].
-No personally identifiable information is collected.
-
-[id='consenting-usage-data-collection']
-=== Consenting usage data collection
-
-You can grant consent for usage data collection at any time.
-
-.Procedure
-. Configure {prod} to grant consent for usage data collection.
-+
-[subs="+quotes,attributes"]
-----
-$ {bin} config set consent-telemetry yes
-----
-. Restart your {prod} instance to enable the change.
-+
-[subs="+quotes,attributes"]
-----
-$ {bin} stop
-$ {bin} start
-----
-
-[id='revoking-usage-data-collection']
-=== Revoking usage data collection
-
-You can revoke consent for usage data collection at any time.
-
-.Procedure
-. Configure {prod} to revoke consent for usage data collection.
-+
-[subs="+quotes,attributes"]
-----
-$ {bin} config set consent-telemetry no
-----
-. Restart your {prod} instance to enable the change.
-+
-[subs="+quotes,attributes"]
-----
-$ {bin} stop
-$ {bin} start
-----
-
-.Additional resources
-* link:{telemetry-notice-url}[{rh} Telemetry data collection notice].
-
 [id='upgrading']
 == Upgrading {prod}
 
